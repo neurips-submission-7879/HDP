@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>HDP &mdash; Hyper Diffusion Planner</title>
+
+  <meta charset="utf-8">
+  <meta name="description"
+    content="Hyper Diffusion Planner — Unleashing the Potential of Diffusion Models for End-to-End Autonomous Driving">
+  <meta name="keywords" content="Diffusion Model, End-to-End Autonomous Driving, Planner, HDP, AI">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="icon" href="./assets/img/icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./assets/css/bulma.min.css">
+  <link rel="stylesheet" href="./assets/css/fontawesome.all.min.css">
+
+  <!-- KaTeX for inline / display math (loaded async, ~80KB) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '\\[', right: '\\]', display: true},
+        {left: '$',  right: '$',  display: false},
+        {left: '\\(', right: '\\)', display: false}
+      ],
+      throwOnError: false
+    });"></script>
+
+  <script defer src="./assets/js/fontawesome.all.min.js"></script>
+
+</head>
+
+<body>
+
+  <!-- Apple-style minimal nav -->
+  <nav id="main-nav" style="position:fixed; top:0; left:0; right:0; z-index:1000;
+              background:rgba(255,255,255,0.82); backdrop-filter:saturate(180%) blur(20px);
+              -webkit-backdrop-filter:saturate(180%) blur(20px);
+              border-bottom:1px solid rgba(0,0,0,0.06); height:48px;
+              display:flex; align-items:center; justify-content:center; gap:2rem; padding:0 24px;">
+    <a href="#"
+      style="font-size:0.85rem; font-weight:600; color:var(--apple-black); text-decoration:none; letter-spacing:-0.01em;">
+      Hyper-Diffusion-Planner
+    </a>
+    <a class="nav-link" href="#abstract">Abstract</a>
+    <a class="nav-link" href="#method">Method</a>
+    <a class="nav-link" href="#results">Results</a>
+    <div class="nav-progress" id="nav-progress"></div>
+  </nav>
+
+  <div style="height:48px;"></div>
+  <style>
+    /* ══════════════════════════════════════════
+       Apple-inspired design system
+       ══════════════════════════════════════════ */
+    :root {
+      --apple-black: #1d1d1f;
+      --apple-gray: #86868b;
+      --apple-light: #f5f5f7;
+      --apple-white: #ffffff;
+      --apple-blue: #0071e3;
+      --apple-blue-hover: #0077ed;
+      --max-w: 980px;
+      --max-w-wide: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      color: var(--apple-black);
+      background: var(--apple-white);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Override Bulma section padding for Apple-level whitespace */
+    .section {
+      padding: 4rem 1.5rem;
+    }
+
+    .section.compact {
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* ── Containers ── */
+    .apple-container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .apple-container.wide {
+      max-width: var(--max-w-wide);
+    }
+
+    /* ── Typography ── */
+    .apple-headline {
+      font-size: clamp(2.8rem, 6.5vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.06;
+      color: var(--apple-black);
+      text-align: center;
+    }
+
+    .apple-headline .hl-accent {
+      background: linear-gradient(135deg, #0071e3 0%, #64acff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .apple-subheadline {
+      font-size: clamp(1.15rem, 2.5vw, 1.4rem);
+      font-weight: 500;
+      color: #424245;
+      text-align: center;
+      line-height: 1.5;
+      max-width: 720px;
+      margin: 1.2rem auto 0;
+    }
+
+    .apple-section-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      color: var(--apple-black);
+      text-align: center;
+      margin-bottom: 0.4rem;
+    }
+
+    .apple-section-sub {
+      font-size: 1.05rem;
+      color: var(--apple-gray);
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto 3rem;
+      line-height: 1.6;
+    }
+
+    .apple-body {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #424245;
+    }
+
+    .apple-body b,
+    .apple-body strong {
+      color: var(--apple-black);
+      font-weight: 600;
+    }
+
+    /* ── Buttons ── */
+    .apple-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 24px;
+      border-radius: 980px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    .apple-btn.primary {
+      background: var(--apple-blue);
+      color: #fff;
+    }
+
+    .apple-btn.primary:hover {
+      background: var(--apple-blue-hover);
+      transform: scale(1.03);
+    }
+
+    .apple-btn.secondary {
+      background: var(--apple-black);
+      color: #fff;
+    }
+
+    .apple-btn.secondary:hover {
+      background: #333;
+      transform: scale(1.03);
+    }
+
+    /* ── Method grid blocks ── */
+    .m-block {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem 3.5rem;
+      align-items: center;
+      padding: 4.5rem 0;
+    }
+
+    .m-block+.m-block {
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .m-block.reverse .m-text {
+      order: 2;
+    }
+
+    .m-block.reverse .m-fig {
+      order: 1;
+    }
+
+    .m-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .m-text h3 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+      color: var(--apple-black);
+    }
+
+    .m-text p {
+      font-size: 0.98rem;
+      line-height: 1.8;
+      color: #424245;
+      margin-bottom: 0.65rem;
+      text-align: justify;
+    }
+
+    .m-text .callout {
+      background: var(--apple-light);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      margin: 0.6rem 0 0.8rem;
+      font-size: 0.93rem;
+      line-height: 1.7;
+      color: #1d1d1f;
+      text-align: justify;
+    }
+
+    .m-text .callout b {
+      color: var(--apple-blue);
+    }
+
+    .m-fig {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .m-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+      transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        box-shadow 0.4s ease;
+    }
+
+    .m-fig img:hover {
+      transform: scale(1.015);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    .m-fig .fig-row {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .m-fig .fig-row img {
+      height: auto;
+      border-radius: 12px;
+    }
+
+    .m-fig .formula-img {
+      border-radius: 4px;
+      background: var(--apple-light);
+      padding: 8px 12px;
+    }
+
+    .m-fig .formula-img:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .fig-caption {
+      font-size: 0.82rem;
+      color: var(--apple-gray);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ── Hero area ── */
+    .apple-hero {
+      padding: 7rem 1.5rem 3rem;
+      text-align: center;
+      background: var(--apple-white);
+    }
+
+    .apple-hero .authors {
+      font-size: 0.95rem;
+      color: var(--apple-black);
+      margin-top: 2.2rem;
+      line-height: 1.8;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .apple-hero .authors span {
+      white-space: nowrap;
+    }
+
+    .apple-hero .authors sup {
+      font-size: 0.7em;
+    }
+
+    .apple-hero .affiliations {
+      font-size: 0.88rem;
+      color: #636366;
+      margin-top: 0.8rem;
+      line-height: 1.6;
+    }
+
+    .apple-hero .note {
+      font-size: 0.8rem;
+      color: var(--apple-gray);
+      margin-top: 0.3rem;
+    }
+
+    .apple-hero .btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    /* ── Framework teaser ── */
+    .teaser-section {
+      padding: 2rem 1.5rem 4rem;
+      background: var(--apple-light);
+    }
+
+    .teaser-section img {
+      width: 100%;
+      max-width: var(--max-w-wide);
+      margin: 0 auto;
+      display: block;
+      border-radius: 16px;
+    }
+
+    /* ── GIF showcase ── */
+    .gif-row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+
+    .gif-row .gif-card {
+      width: 31%;
+    }
+
+    /* ── Results table ── */
+    .result-img {
+      display: block;
+      margin: 1.5rem auto 0;
+      width: 100%;
+      max-width: 720px;
+      border-radius: 12px;
+    }
+
+    /* ── BibTeX ── */
+    .bib-section pre {
+      background: var(--apple-light);
+      border-radius: 12px;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      border: none;
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+
+    /* ── Footer ── */
+    .apple-footer {
+      padding: 2rem 1.5rem;
+      text-align: center;
+      font-size: 0.82rem;
+      color: #999;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .apple-footer a {
+      color: var(--apple-blue);
+      text-decoration: none;
+    }
+
+    .apple-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── Nav scroll progress bar ── */
+    .nav-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #0071e3, #64acff);
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    /* ── Nav link hover underline ── */
+    .nav-link {
+      position: relative;
+      font-size: 0.78rem;
+      color: var(--apple-gray);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0%;
+      height: 1.5px;
+      background: var(--apple-blue);
+      transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .nav-link:hover {
+      color: var(--apple-black);
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+
+    /* ── Button glow pulse ── */
+    .apple-btn.primary {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .apple-btn.primary::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      background: linear-gradient(135deg, #0071e3, #64acff, #0071e3);
+      opacity: 0;
+      z-index: -1;
+      transition: opacity 0.4s ease;
+      filter: blur(12px);
+    }
+
+    .apple-btn.primary:hover::before {
+      opacity: 0.6;
+    }
+
+    /* ── Teaser parallax container ── */
+    .teaser-section {
+      overflow: hidden;
+    }
+
+    .teaser-parallax {
+      will-change: transform;
+      transition: transform 0.1s linear;
+    }
+
+    /* ── Image reveal: blur-to-sharp + scale ── */
+    .img-reveal {
+      opacity: 0;
+      filter: blur(12px);
+      transform: scale(0.96);
+      transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .img-reveal.shown {
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
+    }
+
+    /* ── GIF 3D tilt card ── */
+    .gif-card {
+      perspective: 800px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+      transition: box-shadow 0.4s ease;
+    }
+
+    .gif-card:hover {
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
+    }
+
+    .gif-card img {
+      width: 100%;
+      display: block;
+      border-radius: 14px;
+      transition: transform 0.15s ease-out;
+      will-change: transform;
+    }
+
+    /* ── Callout slide-in from left ── */
+    .callout-anim {
+      opacity: 0;
+      transform: translateX(-24px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .callout-anim.shown {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ── Counter number animation (glow) ── */
+    .counter {
+      display: inline-block;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .counter.counting {
+      color: var(--apple-blue);
+      transition: color 0.5s ease;
+    }
+
+    /* ── Scroll-reveal (enhanced with scale) ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(48px) scale(0.98);
+      transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Stagger text vs figure */
+    .reveal .m-text {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s,
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+    }
+
+    .reveal .m-fig {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.25s,
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.25s;
+    }
+
+    .reveal.visible .m-text,
+    .reveal.visible .m-fig {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Theory deep-dive: collapsible card ── */
+    .theory-card {
+      margin: 1.5rem 0 3rem;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 18px;
+      background: linear-gradient(180deg, var(--apple-white) 0%, #fafafa 100%);
+      overflow: hidden;
+      transition: box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.4s ease;
+    }
+
+    .theory-card.open {
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.06);
+      border-color: rgba(0, 113, 227, 0.18);
+    }
+
+    .theory-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      width: 100%;
+      padding: 1.1rem 1.6rem;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.96rem;
+      font-weight: 500;
+      color: var(--apple-black);
+      text-align: left;
+      transition: background 0.2s ease;
+      letter-spacing: -0.005em;
+    }
+
+    .theory-toggle:hover {
+      background: rgba(0, 113, 227, 0.04);
+    }
+
+    .theory-toggle .label-prefix {
+      display: inline-block;
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--apple-blue);
+      margin-right: 0.85rem;
+      padding: 4px 9px;
+      border-radius: 6px;
+      background: rgba(0, 113, 227, 0.08);
+      vertical-align: 1px;
+    }
+
+    .theory-toggle .chevron {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.04);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        background 0.3s ease;
+      font-size: 0.75rem;
+      color: var(--apple-gray);
+      flex-shrink: 0;
+    }
+
+    .theory-card.open .chevron {
+      transform: rotate(180deg);
+      background: rgba(0, 113, 227, 0.12);
+      color: var(--apple-blue);
+    }
+
+    .theory-content {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.4s ease;
+    }
+
+    .theory-card.open .theory-content {
+      max-height: 3000px;
+      opacity: 1;
+      transition: max-height 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.5s ease 0.15s;
+    }
+
+    .theory-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 1.4rem;
+      padding: 0.4rem 1.6rem 1.8rem;
+    }
+
+    .theorem-card,
+    .code-card {
+      background: var(--apple-white);
+      border-radius: 14px;
+      padding: 1.4rem 1.5rem;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .theorem-card h4,
+    .code-card h4 {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--apple-blue);
+      margin: 0 0 0.7rem;
+    }
+
+    .theorem-card h5 {
+      font-size: 0.98rem;
+      font-weight: 600;
+      margin: 0 0 0.4rem;
+      color: var(--apple-black);
+    }
+
+    .theorem-card p {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: #3a3a3c;
+      margin: 0.45rem 0;
+    }
+
+    .theorem-eq {
+      display: block;
+      text-align: center;
+      margin: 0.9rem 0 1rem;
+      padding: 0.7rem 0.5rem;
+      background: var(--apple-light);
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+
+    .remark {
+      margin-top: 0.9rem;
+      padding: 0.75rem 0.95rem;
+      background: var(--apple-light);
+      border-radius: 9px;
+      border-left: 3px solid var(--apple-gray);
+    }
+
+    .remark .remark-title {
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: var(--apple-black);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .remark p {
+      font-size: 0.82rem !important;
+      color: #555 !important;
+      margin: 0 !important;
+      line-height: 1.55 !important;
+    }
+
+    .code-card pre {
+      background: #1d1d1f;
+      color: #f5f5f7;
+      border-radius: 11px;
+      padding: 1rem 1.15rem;
+      font-size: 0.78rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      font-family: 'SF Mono', Menlo, Monaco, Consolas, 'Courier New', monospace;
+      margin: 0;
+    }
+
+    .code-card pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+      font-family: inherit;
+    }
+
+    .code-card .py-kw { color: #ff6ec7; font-weight: 600; }
+    .code-card .py-fn { color: #82c8ff; }
+    .code-card .py-cm { color: #7d8590; font-style: italic; }
+    .code-card .py-nm { color: #d6c4ff; }
+    .code-card .py-op { color: #ff7b72; }
+
+    @media (max-width: 860px) {
+      .theory-grid {
+        grid-template-columns: 1fr;
+        padding: 0.4rem 1rem 1.4rem;
+      }
+
+      .theory-toggle {
+        padding: 1rem 1.1rem;
+        font-size: 0.9rem;
+      }
+
+      .theory-toggle .label-prefix {
+        display: none;
+      }
+    }
+
+    /* ── Main results table (Apple-style) ── */
+    .results-table-wrap {
+      width: 100%;
+      max-width: var(--max-w);
+      margin: 1.5rem auto 0;
+      overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      background: var(--apple-white);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--apple-black);
+    }
+
+    .results-table thead th {
+      background: var(--apple-light);
+      font-weight: 600;
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      color: #3a3a3c;
+      padding: 0.85rem 1rem;
+      text-align: center;
+      vertical-align: bottom;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      white-space: nowrap;
+    }
+
+    /* Rowspan cells: vertically center within the spanned area.
+       Since row1 and row2 heights are ~equal, the geometric center lands on the
+       divider line. Single-line text (Model/Data) sits on the divider; multi-line
+       text (Open-Loop Score) distributes symmetrically above and below it. */
+    .results-table thead th[rowspan] {
+      vertical-align: middle;
+    }
+
+    .results-table thead .th-group {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--apple-blue);
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .results-table thead tr.sub th {
+      font-size: 0.74rem;
+      font-weight: 500;
+      color: var(--apple-gray);
+      padding-top: 0.45rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .results-table th:first-child,
+    .results-table td:first-child {
+      text-align: left;
+      padding-left: 1.4rem;
+    }
+
+    .results-table tbody td {
+      padding: 0.7rem 1rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+      transition: background 0.2s ease;
+    }
+
+    .results-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .results-table tbody tr:hover td {
+      background: rgba(0, 113, 227, 0.025);
+    }
+
+    .results-table tbody tr.section-divider td {
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .results-table .row-label {
+      font-weight: 500;
+      color: var(--apple-black);
+    }
+
+    .results-table .row-label .indent {
+      display: inline-block;
+      width: 1rem;
+    }
+
+    .results-table .row-label .plus {
+      color: var(--apple-blue);
+      font-weight: 600;
+      margin-right: 0.15rem;
+    }
+
+    .results-table .best {
+      background: linear-gradient(135deg, rgba(48, 209, 88, 0.18), rgba(48, 209, 88, 0.08));
+      font-weight: 700;
+      color: #1d6f3f;
+      border-radius: 6px;
+      box-shadow: inset 0 0 0 1px rgba(48, 209, 88, 0.25);
+    }
+
+    .results-table .muted {
+      color: var(--apple-gray);
+    }
+
+    .results-table .row-final {
+      background: rgba(0, 113, 227, 0.04);
+    }
+
+    .results-table .row-final td {
+      font-weight: 600;
+    }
+
+    .results-caption {
+      font-size: 0.82rem;
+      color: var(--apple-gray);
+      text-align: center;
+      max-width: var(--max-w);
+      margin: 0.9rem auto 0;
+      line-height: 1.6;
+    }
+
+    .results-caption .legend-best {
+      display: inline-block;
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 3px;
+      background: linear-gradient(135deg, rgba(48, 209, 88, 0.85), rgba(48, 209, 88, 0.55));
+      vertical-align: -1px;
+      margin-right: 0.3rem;
+    }
+
+    /* ── Real-vehicle case grid ── */
+    .case-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.4rem 1.6rem;
+      max-width: var(--max-w-wide);
+      margin: 2.5rem auto 0;
+    }
+
+    .case-card {
+      background: var(--apple-white);
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      padding: 0.9rem 0.9rem 0.7rem;
+      transition: box-shadow 0.4s ease, transform 0.4s ease;
+    }
+
+    .case-card:hover {
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.07);
+      transform: translateY(-2px);
+    }
+
+    .case-card .case-imgs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .case-card .case-imgs img {
+      width: 100%;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .case-card .case-title {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--apple-black);
+      text-align: center;
+      margin-top: 0.7rem;
+      letter-spacing: -0.005em;
+    }
+
+    .case-card .case-tag {
+      display: inline-block;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--apple-blue);
+      background: rgba(0, 113, 227, 0.08);
+      padding: 2px 7px;
+      border-radius: 5px;
+      margin-right: 0.45rem;
+      vertical-align: 1.5px;
+    }
+
+    @media (max-width: 860px) {
+      .case-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .results-table {
+        font-size: 0.78rem;
+      }
+
+      .results-table th,
+      .results-table tbody td {
+        padding: 0.55rem 0.55rem;
+      }
+    }
+
+    /* ── Section divider line animation ── */
+    .m-block+.m-block::before {
+      content: '';
+      display: block;
+      grid-column: 1 / -1;
+      height: 0;
+      border: none;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 860px) {
+      .m-block {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 3rem 0;
+      }
+
+      .m-block.reverse .m-text {
+        order: 1;
+      }
+
+      .m-block.reverse .m-fig {
+        order: 2;
+      }
+
+      .m-fig .fig-row {
+        flex-direction: column;
+      }
+
+      .m-fig .fig-row img {
+        width: 100% !important;
+      }
+
+      .gif-row {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .gif-row .gif-card {
+        width: 85%;
+      }
+
+      .apple-hero {
+        padding: 3.5rem 1.5rem 1.5rem;
+      }
+    }
+  </style>
+
+  <!-- ══════════ HERO ══════════ -->
+  <section class="apple-hero">
+    <div class="apple-container">
+      <h1 class="apple-headline">
+        <span class="hl-accent">Hyper</span> Diffusion Planner
+      </h1>
+      <p class="apple-subheadline">
+        Unleashing the Potential of Diffusion Models<br>for End-to-End Autonomous Driving
+      </p>
+
+      <div class="authors">
+        <span>Anonymous Authors</span>
+      </div>
+
+      <div class="affiliations">
+        Paper under double-blind review
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════ FRAMEWORK TEASER ══════════ -->
+  <section class="teaser-section" id="teaser">
+    <div class="apple-container wide">
+      <div class="teaser-parallax">
+        <img class="img-reveal" src="./assets/img/framework.jpg" alt="HDP Framework Overview">
+      </div>
+      <p class="fig-caption" style="margin-top:1.2rem; max-width:900px; margin-left:auto; margin-right:auto;">
+        Simulation-based benchmarks differ substantially from real-world deployment, leaving the true capability of
+        diffusion-based planners largely unverified. Through a detailed investigation of the IL/RL training recipe, we
+        unleash the potential of diffusion-based planning, achieving a 10x improvement in real world.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════ ABSTRACT ══════════ -->
+  <section class="section" id="abstract">
+    <div class="apple-container">
+      <h2 class="apple-section-title">Abstract</h2>
+      <p class="apple-body" style="text-align:justify; margin-top:1.5rem;">
+        Diffusion models have become a popular choice for decision-making tasks in robotics, and more recently, are also
+        being considered for solving autonomous driving tasks. However, their applications and evaluations in autonomous
+        driving remain limited to simulation-based or laboratory settings. The full strength of diffusion models for
+        large-scale, complex real-world settings, such as End-to-End Autonomous Driving (E2E AD), remains underexplored.
+        <b>In this study, we conducted a systematic and large-scale investigation to unleash the potential of the diffusion
+        models as planners for E2E AD, based on a tremendous amount of real-vehicle data and road testing</b>. Through
+        comprehensive and carefully controlled studies, we identify key insights into the diffusion loss space,
+        trajectory representation, and data scaling that significantly impact E2E planning performance. Moreover, we
+        also provide an effective reinforcement learning post-training strategy to further enhance the safety and
+        robustness of the learned planner. The resulting diffusion-based learning framework, Hyper
+        Diffusion Planner (HDP), is deployed on a real-vehicle platform and evaluated
+        across 6 urban driving scenarios and 200 km of real-world testing, achieving a notable 10x performance
+        improvement over the base model. <b>Our work demonstrates that diffusion models, when properly designed and
+        trained, can serve as effective and scalable E2E AD planners for complex, real-world autonomous driving tasks</b>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════ GIF DEMOS ══════════ -->
+  <section class="section compact" style="background:var(--apple-light);">
+    <div class="apple-container">
+      <div class="gif-row">
+        <div class="gif-card"><img src="./assets/img/001.gif" alt="Demo 1"></div>
+        <div class="gif-card"><img src="./assets/img/002.gif" alt="Demo 2"></div>
+        <div class="gif-card"><img src="./assets/img/003.gif" alt="Demo 3"></div>
+      </div>
+      <p style="text-align:center; color:var(--apple-gray); font-size:0.88rem; margin-top:1rem;">
+        Real-world urban driving &mdash; model output with only minimal smoothness post-refinement.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════ METHOD OVERVIEW ══════════ -->
+  <section class="section" id="method">
+    <div class="apple-container wide">
+      <h2 class="apple-section-title reveal">Method</h2>
+      <p class="apple-section-sub reveal">
+        We systematically study four key design axes to unleash the full potential of diffusion-based planning
+        for real-world autonomous driving.
+      </p>
+
+      <!-- 1. Loss Space -->
+      <div class="m-block reveal">
+        <div class="m-text">
+          <h3>1 &mdash; Rethinking Diffusion Loss Space</h3>
+          <p>
+            Diffusion models are typically trained to predict one of three quantities: the clean data
+            &tau;<sub>0</sub>, the noise &epsilon;, or the flow velocity <i>v</i>. These targets are mathematically
+            inter-convertible, yet they induce very different learning dynamics. Since existing configurations
+            are inherited from image generation&mdash;a domain fundamentally different from planning&mdash;we
+            revisit the choice by evaluating <strong>all 9 prediction&ndash;loss combinations</strong>
+            on our planning task.
+          </p>
+          <div class="callout callout-anim">
+            <b>Key finding:</b> &tau;<sub>0</sub>-prediction with &tau;<sub>0</sub>-loss converges the fastest,
+            generates the smoothest trajectories, and provides the best manifold coverage. The &epsilon;-prediction
+            models, by contrast, suffer from high-frequency jitter and even complete breakdown under certain
+            loss pairings.
+          </div>
+          <p>
+            <strong>Why?</strong> The trajectory &tau;<sub>0</sub> lives on a low-dimensional manifold that
+            the network can fit directly, while &epsilon; and <i>v</i> targets occupy much higher-dimensional
+            spaces that demand greater capacity and exhibit training instability.
+            In particular, &tau;<sub>0</sub>-prediction demonstrates superior stability during the final low-noise
+            denoising steps, effectively suppressing high-frequency artifacts to yield kinematically coherent
+            trajectories.
+            Getting this "training coordinate system" right is the prerequisite for all subsequent improvements.
+          </p>
+        </div>
+        <div class="m-fig">
+          <img class="img-reveal" src="./assets/img/training_score.jpg" alt="Training curves">
+          <p class="fig-caption">
+            The learning curve of models trained with different loss designs.
+          </p>
+          <img class="img-reveal" src="./assets/img/9_grid.jpg" style="width:82%;" alt="Trajectory quality grid">
+          <p class="fig-caption">
+            The open-loop visualization of planning trajectories.
+          </p>
+        </div>
+      </div>
+
+      <!-- 2. Hybrid Loss -->
+      <div class="m-block reverse reveal">
+        <div class="m-text">
+          <h3>2 &mdash; Hybrid Trajectory Representation</h3>
+          <p>
+            With &tau;<sub>0</sub>-prediction established, a problem emerges when inspecting higher-order
+            statistics: <strong>waypoint</strong> trajectories capture global geometry well but produce
+            jerky velocity profiles, while <strong>velocity</strong> trajectories are kinematically smooth yet
+            sacrifice geometric accuracy. Choosing only one forces an undesirable trade-off.
+          </p>
+          <div class="callout callout-anim">
+            <b>Our solution &mdash; Hybrid Loss:</b> The model outputs velocity for numerical stability,
+            but training jointly supervises both the velocity error and the integrated-waypoint error, combining
+            the geometric strength of waypoints with the kinematic smoothness of velocity.
+          </div>
+          <p>
+            <strong>Theoretical guarantee:</strong> We prove that the Hybrid Loss is equivalent to a
+            score-matching loss under a positive-definite weighted <i>P</i>-norm, ensuring the learned score
+            function remains unbiased.
+          </p>
+          <p>
+            <strong>Real-vehicle performance:</strong> In closed-loop tests, the Hybrid Loss substantially improves
+            both success rate and comfort over single-representation baselines&mdash;the critical step from
+            "it drives" to "it drives well."
+          </p>
+        </div>
+        <div class="m-fig">
+          <div class="fig-row">
+            <img class="img-reveal" src="./assets/img/v-t.jpg" style="width:47%;" alt="v-t curve">
+            <img class="img-reveal" src="./assets/img/vel_wpt_relative.jpg" style="width:53%;" alt="Metrics comparison">
+          </div>
+          <p class="fig-caption">Left: <i>v</i>&ndash;<i>t</i> curves&mdash;waypoints jitter, velocity is smooth. Right:
+            Metric comparison.</p>
+
+          <img class="img-reveal" src="./assets/img/vel_wpt_vel_hybrid_relative.png" alt="Hybrid loss gains">
+          <p class="fig-caption">Closed-loop results: Hybrid Loss outperforms both single-representation baselines
+            across all metrics.</p>
+        </div>
+      </div>
+
+      <!-- ── Theory deep-dive (expanded by default) ── -->
+      <div class="theory-card reveal open" id="theory-hybrid">
+        <button type="button" class="theory-toggle" aria-expanded="true">
+          <span>
+            <span class="label-prefix">Theory</span>
+            Why this hybrid loss is theoretically grounded &mdash; derivation &amp; algorithm
+          </span>
+          <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+        </button>
+        <div class="theory-content">
+          <div class="theory-grid">
+
+            <!-- Theorem column -->
+            <div class="theorem-card">
+              <h4>Theorem &mdash; Hybrid loss = score matching under <i>P</i>-norm</h4>
+              <p>The Hybrid Loss can be equivalently rewritten as a weighted score-matching objective:</p>
+              <div class="theorem-eq">
+                $\mathcal{L}_{\text{hybrid}} \;=\; \mathbb{E}_{\tau^{\mathbf{v}}_{0},\,\epsilon,\,t}\!\left[\,\lVert \tau^{\mathbf{v}}_{\theta} - \tau^{\mathbf{v}}_{0} \rVert_{\mathit{P}}^{2}\,\right]$
+              </div>
+              <p>
+                where $\mathit{P} = I + \Delta t^{2}\,\omega\, M^{\!\top}\!M$ is positive-definite. By Bregman-divergence
+                theory, this quadratic objective is a valid score-matching loss whose unique minimizer is
+                $\mathbb{E}[\tau^{\mathbf{v}}_{0}\mid\tau^{\mathbf{v}}_{t}]$ &mdash; recovering the marginal score
+                function. Integrating velocity into waypoint supervision therefore introduces <strong>no bias</strong>
+                to the diffusion model.
+              </p>
+
+              <div class="remark">
+                <span class="remark-title">Remark 1 &mdash; Generality of <i>M</i></span>
+                <p>The proof only requires $M^{\!\top}\!M \succeq 0$, which holds for <em>any</em> matrix $M$. The
+                  lower-triangular integration matrix is just the physically meaningful choice we adopt; other
+                  kinematic couplings (e.g. acceleration) remain valid score-matching objectives.</p>
+              </div>
+
+              <div class="remark">
+                <span class="remark-title">Remark 2 &mdash; Why <em>not</em> $L_1$ or auxiliary planning losses</span>
+                <p>$L_1$-norm losses (e.g. DiffusionDrive) and prediction-dependent auxiliary losses (e.g. VAD
+                  collision loss) are <strong>not</strong> Bregman divergences. Their minimizers do not coincide
+                  with $\mathbb{E}[\tau^{\mathbf{v}}_{0}\mid\tau^{\mathbf{v}}_{t}]$, yielding biased score
+                  estimators.</p>
+              </div>
+            </div>
+
+            <!-- Algorithm column -->
+            <div class="code-card">
+              <h4>Algorithm 1 &mdash; Hybrid loss with detached integral</h4>
+              <pre><code><span class="py-kw">def</span> <span class="py-fn">detached_integral</span>(v, W, dt):
+    <span class="py-cm"># v : velocity of future trajectory</span>
+    <span class="py-cm"># W : gradient detach window size</span>
+    <span class="py-cm"># dt: time interval</span>
+    wpt_sg   = torch.<span class="py-fn">cumsum</span>(v.<span class="py-fn">detach</span>()) * dt
+    shift_sg = torch.<span class="py-fn">roll</span>(wpt_sg, shifts=W)
+    shift_sg[:W] = <span class="py-nm">0</span>
+
+    wpt   = torch.<span class="py-fn">cumsum</span>(v) * dt
+    shift = torch.<span class="py-fn">roll</span>(wpt, shifts=W)
+    shift[:W] = <span class="py-nm">0</span>
+
+    <span class="py-kw">return</span> wpt + shift_sg - shift
+
+
+<span class="py-kw">def</span> <span class="py-fn">hybrid_loss</span>(pred_v, gt_v, W, omega):
+    <span class="py-cm"># omega : loss balancing weight</span>
+    l_v   = (pred_v - gt_v) ** <span class="py-nm">2</span>
+    l_wpt = (<span class="py-fn">detached_integral</span>(pred_v, W, dt)
+             - torch.<span class="py-fn">cumsum</span>(gt_v) * dt) ** <span class="py-nm">2</span>
+    <span class="py-kw">return</span> l_v + omega * l_wpt</code></pre>
+              <p style="font-size:0.78rem; color:var(--apple-gray); margin:0.7rem 0 0; line-height:1.5;">
+                The detached integral restricts gradient backpropagation to a temporal window of $W$ steps,
+                rebalancing supervision across future timesteps without altering the loss minimizer.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Data Scaling -->
+      <div class="m-block reveal">
+        <div class="m-text">
+          <h3>3 &mdash; Data Scaling &amp; Emergent Multimodality</h3>
+          <p>
+            Diffusion models are renowned for multimodal generation, yet existing AD benchmarks
+            (e.g., NAVSIM with only ~100K frames) are far too small to exhibit this capability, leading to
+            severe mode collapse. To investigate, we conduct controlled experiments scaling real-vehicle data
+            from 100K to <strong>70M frames</strong>&mdash;orders of magnitude beyond typical academic settings.
+          </p>
+          <div class="callout callout-anim">
+            <b>Key finding:</b> At 100K frames the model collapses to a single mode. As data grows past 1M,
+            multimodal behavior <em>emerges</em>&mdash;the trajectory divergence score increases steadily. Both
+            open- and closed-loop metrics improve continuously, with
+            <span class="counter" data-target="20" data-suffix="%+">20%+</span> closed-loop gain from 10M to 70M alone.
+          </div>
+          <p>
+            This validates that a clean diffusion planning architecture, free of anchors or goal conditioning,
+            can effectively exploit industrial-scale data&mdash;consistent with the theoretical result that diffusion
+            models need sufficient training data for generalization.
+          </p>
+        </div>
+        <div class="m-fig">
+          <div class="fig-row">
+            <img class="img-reveal" src="./assets/img/data_scaling_curve.jpg" style="width:36%;" alt="Scaling curve">
+            <img class="img-reveal" src="./assets/img/multimodal.jpg" style="width:64%;" alt="Multimodal">
+          </div>
+          <p class="fig-caption">Left: Trajectory divergence vs. data size&mdash;multimodality emerges with scale.
+            Right: All trajectories collapse at 100K; diverse modes at 20M.</p>
+          <div class="fig-row">
+            <img class="img-reveal" src="./assets/img/data_distribution.jpg" style="width:45%;" alt="Data splits">
+            <img class="img-reveal" src="./assets/img/scaling_curve.jpg" style="width:55%;" alt="Performance scaling">
+          </div>
+          <p class="fig-caption">Left: Training data splits (S / M / L / XL). Right: Both open- and closed-loop
+            performance scale steadily with data.</p>
+        </div>
+      </div>
+
+      <!-- 4. RL Post-Training -->
+      <div class="m-block reverse reveal">
+        <div class="m-text">
+          <h3>4 &mdash; RL Post-Training</h3>
+          <p>
+            Imitation learning produces a strong behavioral prior but provides no explicit safety constraint&mdash;a
+            critical gap for deployment. We close it with an RL post-training stage that directly
+            optimizes a safety-aware reward while keeping the entire diffusion architecture intact.
+          </p>
+          <p>
+            We formulate a <strong>KL-regularized policy optimization</strong> objective that constrains the
+            updated policy to stay close to the referece policy. Its closed-form solution is an elegant
+            reward-reweighting: the existing Hybrid Loss is simply multiplied by exp(&beta;&middot;<i>r</i>),
+            where <i>r</i> is a collision-based safety reward.
+          </p>
+          <div class="callout callout-anim">
+            <b>Why not diffusion PPO?</b> Many diffusion RL methods decompose denoising into a multi-step MDP
+            and apply PPO to each step, requiring fine discretization for Gaussian validity, storing gradients
+            for all steps, and incurring high variance.
+            Our approach is a simple <b>weighted regression</b>&mdash;same training pipeline, minimal overhead,
+            and provably compatible with the Hybrid Loss <i>P</i>-norm.
+          </div>
+          <p>
+            The resulting <strong>HDP-RL</strong> shows significant improvements in safety-critical scenarios
+            (yielding at intersections, VRU avoidance) while preserving overall driving stability&mdash;completing
+            the progression from "it drives" to "it drives safely."
+          </p>
+        </div>
+        <div class="m-fig">
+          <img class="img-reveal" src="./assets/img/rl_improvement.jpg" alt="RL improvement">
+          <p class="fig-caption">Safety-related success rate improvement after RL post-training.</p>
+          <img class="img-reveal" src="./assets/img/real_12_clip.png" alt="Case 1">
+          <img class="img-reveal" src="./assets/img/real_13_clip.png" alt="Case 2">
+          <p class="fig-caption">
+            Trajectory comparison&mdash;<span style="color:#e74c3c">red</span> HDP vs.
+            <span style="color:#3498db">blue</span> HDP-RL (RL steers away from collision).
+          </p>
+        </div>
+      </div>
+
+      <!-- ── RL Theory deep-dive (expanded by default) ── -->
+      <div class="theory-card reveal open" id="theory-rl">
+        <button type="button" class="theory-toggle" aria-expanded="true">
+          <span>
+            <span class="label-prefix">Theory</span>
+            Why this RL update is theoretically grounded &mdash; derivation &amp; algorithm
+          </span>
+          <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+        </button>
+        <div class="theory-content">
+          <div class="theory-grid">
+
+            <!-- Theorem column -->
+            <div class="theorem-card">
+              <h4>Theorem &mdash; KL-regularized RL = weighted hybrid regression</h4>
+              <p>We formulate the RL post-training as a KL-regularized policy optimization that keeps $\pi^{k}$ close to the reference policy $\pi^{k-1}$:</p>
+              <div class="theorem-eq">
+                $\displaystyle\max_{\pi^{k}}\;\mathbb{E}_{s\sim\mathcal{D}}\!\left[\,\mathbb{E}_{a\sim\pi^{k}}[\,r(s,a)\,] \;-\; \tfrac{1}{\beta}\,D_{\mathrm{KL}}\!\big(\pi^{k}\,\|\,\pi^{k-1}\big)\right]$
+              </div>
+              <p>This admits a closed-form optimum
+                $\pi^{k^{\star}}(a\mid s) \propto \pi^{k-1}(a\mid s)\cdot\exp(\beta\,r(s,a))$.
+                We extract it by a single weighted regression step &mdash; the <strong>RL-hybrid loss</strong>:
+              </p>
+              <div class="theorem-eq">
+                $\mathcal{L}_{\text{RL-hybrid}} \;=\; \mathbb{E}_{t,\,\epsilon,\,(s,\,\tau^{\mathbf{v}}_{0})\sim\mathcal{D}}\!\left[\,\exp(\beta\,r)\cdot\lVert\tau^{\mathbf{v};k}_{\theta} - \tau^{\mathbf{v}}_{0}\rVert_{\mathit{P}}^{2}\,\right]$
+              </div>
+              <p>which simply <strong>reweights the IL hybrid loss</strong> by an exponential reward &mdash; same forward pass, same backward pass.</p>
+
+              <div class="remark">
+                <span class="remark-title">Remark &mdash; Compatibility with the Hybrid Loss</span>
+                <p>The $\mathit{P}$-norm $\lVert\cdot\rVert_{\mathit{P}}^{2}$ is a Bregman divergence
+                  (Section&nbsp;2), so the weighted regression provably extracts the optimal policy
+                  $\pi^{k^{\star}}$. RL post-training therefore shares the same loss geometry as IL
+                  pretraining &mdash; no distribution shift at switch-over.</p>
+              </div>
+            </div>
+
+            <!-- Algorithm column -->
+            <div class="code-card">
+              <h4>Algorithm 2 &mdash; RL-Hybrid Loss</h4>
+              <pre><code><span class="py-kw">def</span> <span class="py-fn">rl_hybrid_loss</span>(r, beta, pred_v, gt_v, W, omega):
+    <span class="py-cm"># r    : per-candidate reward</span>
+    <span class="py-cm"># beta : temperature</span>
+    <span class="py-cm"># pred_v, gt_v, W, omega: same as Algorithm 1</span>
+
+    r_n    = (r - r.<span class="py-fn">mean</span>()) / (r.<span class="py-fn">std</span>() + <span class="py-nm">1e-6</span>)
+    weight = torch.<span class="py-fn">exp</span>(beta * r_n).<span class="py-fn">detach</span>()
+
+    <span class="py-kw">return</span> weight * <span class="py-fn">hybrid_loss</span>(pred_v, gt_v, W, omega)</code></pre>
+              <p style="font-size:0.78rem; color:var(--apple-gray); margin:0.7rem 0 0; line-height:1.5;">
+                Reuses <code style="font-family:'SF Mono',Menlo,monospace; background:rgba(0,0,0,0.04); padding:1px 5px; border-radius:4px;">hybrid_loss</code>
+                from <strong>Algorithm&nbsp;1</strong>: the reward weight is detached so gradients flow
+                only through the hybrid regression, preserving the IL training dynamics.
+              </p>
+
+              <div class="remark">
+                <span class="remark-title">Remark &mdash; Per-state cost: <i>K</i> vs <i>K&middot;T</i></span>
+                <p>RL-hybrid: <strong>$K$ forward-backwards</strong> per state ($K$ candidates, single random
+                  $t$). Diffusion-PPO baselines: <strong>$K\!\cdot\!T$ forward-backwards</strong> &mdash; one per
+                  transition in the $T$-step denoising MDP. With $T\!=\!50$ this is two orders of magnitude of
+                  optimization-cost overhead.</p>
+              </div>
+            </div>
+
+          </div>
+          <p style="text-align:center; font-size:0.85rem; color:var(--apple-gray); margin:0.4rem 1.6rem 1.6rem; line-height:1.6;">
+            More RL results &mdash; multi-reward training curves, DPPO-style baseline comparison, and
+            per-step cost analysis &mdash; are available in <strong>Appendix&nbsp;E</strong>.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ══════════ REAL-VEHICLE TESTING RESULTS ══════════ -->
+  <section class="section" id="results" style="background:var(--apple-light);">
+    <div class="apple-container wide">
+      <h2 class="apple-section-title reveal">Real-Vehicle Testing Results</h2>
+      <p class="apple-body reveal" style="text-align:center; max-width:780px; margin:1rem auto 0; color:#3a3a3c;">
+        We evaluate every step of the recipe on real-vehicle road tests across 6 urban driving scenarios and 200&nbsp;km
+        of closed-loop driving. Each component &mdash; <i>&tau;<sub>0</sub></i>-loss, velocity supervision, hybrid loss,
+        data scaling, and RL post-training &mdash; delivers measurable, compounding gains.
+      </p>
+
+      <!-- Main results table -->
+      <div class="results-table-wrap reveal">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th rowspan="2">Model</th>
+              <th rowspan="2">Data</th>
+              <th rowspan="2">Open-Loop<br>Score</th>
+              <th colspan="3" class="th-group">Closed-Loop Score</th>
+            </tr>
+            <tr class="sub">
+              <th>Success Rate</th>
+              <th>Stability</th>
+              <th>Overall</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-label">Base Model</td>
+              <td>M</td>
+              <td>51.07</td>
+              <td>15.67</td>
+              <td class="muted">0.00</td>
+              <td>7.83</td>
+            </tr>
+            <tr>
+              <td class="row-label"><span class="indent"></span>w/ <i>&tau;</i><sub>0</sub>-loss &amp; <i>&tau;</i><sub>0</sub>-pred</td>
+              <td>M</td>
+              <td>75.27</td>
+              <td>22.84</td>
+              <td class="muted">0.00</td>
+              <td>11.42</td>
+            </tr>
+            <tr>
+              <td class="row-label"><span class="plus">+</span>Velocity Supervision</td>
+              <td>M</td>
+              <td>84.38</td>
+              <td>34.72</td>
+              <td>9.24</td>
+              <td>21.98</td>
+            </tr>
+            <tr>
+              <td class="row-label"><span class="plus">+</span>Hybrid Loss</td>
+              <td>M</td>
+              <td>85.05</td>
+              <td>61.88</td>
+              <td>53.88</td>
+              <td>57.88</td>
+            </tr>
+            <tr class="section-divider">
+              <td class="row-label"><span class="plus">+</span>Data Scaling</td>
+              <td>L</td>
+              <td>86.07</td>
+              <td>70.59</td>
+              <td>59.00</td>
+              <td>64.79</td>
+            </tr>
+            <tr>
+              <td class="row-label"><span class="plus">+</span>Data Scaling (<strong>HDP</strong>)</td>
+              <td>XL</td>
+              <td><span class="best">88.94</span></td>
+              <td>71.24</td>
+              <td>79.53</td>
+              <td>75.38</td>
+            </tr>
+            <tr class="section-divider">
+              <td class="row-label"><span class="plus">+</span>RL w/ safety reward (<strong>HDP-RL</strong><sup>&dagger;</sup>)</td>
+              <td class="muted">&mdash;</td>
+              <td class="muted">&mdash;</td>
+              <td>72.89</td>
+              <td>79.53</td>
+              <td>76.20</td>
+            </tr>
+            <tr class="row-final">
+              <td class="row-label"><span class="plus">+</span>RL w/ multi-rewards (<strong>HDP-RL</strong>)</td>
+              <td class="muted">&mdash;</td>
+              <td class="muted">&mdash;</td>
+              <td><span class="best">83.49</span></td>
+              <td><span class="best">84.65</span></td>
+              <td><span class="best">84.07</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="results-caption reveal">
+        <span class="legend-best"></span>highest score per column. Open-loop scores are evaluated by data replay on
+        held-out test datasets; closed-loop scores are obtained from real-world road testing on a real-vehicle platform.
+      </p>
+
+      <!-- 4 case-study figures (2x2) -->
+      <div class="case-grid">
+        <div class="case-card reveal">
+          <div class="case-imgs">
+            <img class="img-reveal" src="./assets/img/real_4b.png" alt="Efficient lane change frame 1">
+            <img class="img-reveal" src="./assets/img/real_4d.png" alt="Efficient lane change frame 2">
+          </div>
+          <span class="case-title"><span class="case-tag">a</span>Efficient Lane Change</span>
+        </div>
+        <div class="case-card reveal">
+          <div class="case-imgs">
+            <img class="img-reveal" src="./assets/img/real_5b.png" alt="Navigational lane change frame 1">
+            <img class="img-reveal" src="./assets/img/real_5d.png" alt="Navigational lane change frame 2">
+          </div>
+          <span class="case-title"><span class="case-tag">b</span>Navigational Lane Change</span>
+        </div>
+        <div class="case-card reveal">
+          <div class="case-imgs">
+            <img class="img-reveal" src="./assets/img/real_10b.png" alt="Vehicle avoidance frame 1">
+            <img class="img-reveal" src="./assets/img/real_10d.png" alt="Vehicle avoidance frame 2">
+          </div>
+          <span class="case-title"><span class="case-tag">c</span>Vehicle Avoidance at Intersection</span>
+        </div>
+        <div class="case-card reveal">
+          <div class="case-imgs">
+            <img class="img-reveal" src="./assets/img/real_11b.png" alt="VRU avoidance frame 1">
+            <img class="img-reveal" src="./assets/img/real_11d.png" alt="VRU avoidance frame 2">
+          </div>
+          <span class="case-title"><span class="case-tag">d</span>VRU Avoidance</span>
+        </div>
+      </div>
+      <p class="fig-caption reveal" style="margin-top:1.2rem; max-width:780px; margin-left:auto; margin-right:auto;">
+        Closed-loop real-vehicle testing across four representative scenarios, each illustrated with two key frames.
+      </p>
+    </div>
+  </section>
+
+
+  <!-- ══════════ ANIMATION ENGINE ══════════ -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      /* ── 1. Scroll-reveal blocks ── */
+      const revealIO = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            revealIO.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
+      document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+
+      /* ── 2. Image blur-to-sharp reveal ── */
+      const imgIO = new IntersectionObserver((entries) => {
+        entries.forEach((e, i) => {
+          if (e.isIntersecting) {
+            setTimeout(() => e.target.classList.add('shown'), i * 120);
+            imgIO.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+      document.querySelectorAll('.img-reveal').forEach(el => imgIO.observe(el));
+
+      /* ── 3. Callout slide-in ── */
+      const calloutIO = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('shown');
+            calloutIO.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      document.querySelectorAll('.callout-anim').forEach(el => calloutIO.observe(el));
+
+      /* ── 3.5 Theory deep-dive toggle ── */
+      document.querySelectorAll('.theory-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const card = btn.parentElement;
+          const isOpen = card.classList.toggle('open');
+          btn.setAttribute('aria-expanded', String(isOpen));
+        });
+      });
+
+      /* ── 4. Counter animation ── */
+      const counterIO = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            animateCounter(e.target);
+            counterIO.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      document.querySelectorAll('.counter').forEach(el => counterIO.observe(el));
+
+      function animateCounter(el) {
+        const target = parseInt(el.dataset.target);
+        const suffix = el.dataset.suffix || '';
+        const duration = 1200;
+        const start = performance.now();
+        el.classList.add('counting');
+
+        function tick(now) {
+          const t = Math.min((now - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - t, 3);
+          const val = Math.round(ease * target);
+          el.textContent = val + suffix;
+          if (t < 1) requestAnimationFrame(tick);
+          else {
+            el.innerHTML = target + suffix;
+            setTimeout(() => el.classList.remove('counting'), 400);
+          }
+        }
+        requestAnimationFrame(tick);
+      }
+
+      /* ── 5. Nav scroll progress bar ── */
+      const progressBar = document.getElementById('nav-progress');
+      if (progressBar) {
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+          if (!ticking) {
+            requestAnimationFrame(() => {
+              const h = document.documentElement.scrollHeight - window.innerHeight;
+              progressBar.style.width = h > 0 ? (window.scrollY / h * 100) + '%' : '0%';
+              ticking = false;
+            });
+            ticking = true;
+          }
+        }, { passive: true });
+      }
+
+      /* ── 6. Teaser parallax on scroll ── */
+      const teaserEl = document.querySelector('.teaser-parallax');
+      const teaserSection = document.getElementById('teaser');
+      if (teaserEl && teaserSection) {
+        let pTicking = false;
+        window.addEventListener('scroll', () => {
+          if (!pTicking) {
+            requestAnimationFrame(() => {
+              const rect = teaserSection.getBoundingClientRect();
+              const ratio = rect.top / window.innerHeight;
+              teaserEl.style.transform = 'translateY(' + (ratio * -30) + 'px) scale(' + (1 + Math.max(0, ratio) * 0.03) + ')';
+              pTicking = false;
+            });
+            pTicking = true;
+          }
+        }, { passive: true });
+      }
+
+      /* ── 7. GIF 3D tilt on mouse move ── */
+      document.querySelectorAll('.gif-card').forEach(card => {
+        const img = card.querySelector('img');
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width - 0.5;
+          const y = (e.clientY - rect.top) / rect.height - 0.5;
+          img.style.transform = 'rotateY(' + (x * 12) + 'deg) rotateX(' + (-y * 12) + 'deg) scale(1.03)';
+        });
+        card.addEventListener('mouseleave', () => {
+          img.style.transform = 'rotateY(0) rotateX(0) scale(1)';
+        });
+      });
+
+      /* ── 8. Nav hide/show on scroll direction ── */
+      const nav = document.getElementById('main-nav');
+      let lastY = 0;
+      let navHidden = false;
+      window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        if (y > 200 && y > lastY && !navHidden) {
+          nav.style.transform = 'translateY(-100%)';
+          nav.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+          navHidden = true;
+        } else if (y < lastY && navHidden) {
+          nav.style.transform = 'translateY(0)';
+          navHidden = false;
+        }
+        lastY = y;
+      }, { passive: true });
+
+    });
+  </script>
+</body>
+
+</html>

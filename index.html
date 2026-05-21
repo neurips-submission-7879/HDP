@@ -163,6 +163,197 @@
       font-weight: 600;
     }
 
+    .insight-panel {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 20px;
+      padding: 2rem 2rem 1.8rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+    }
+
+    .insight-list {
+      margin: 1.4rem 0;
+      padding-left: 1.2rem;
+      color: #424245;
+    }
+
+    .insight-list li {
+      margin-bottom: 1rem;
+      line-height: 1.8;
+    }
+
+    .insight-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .gap-hover-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
+      gap: 1rem;
+      align-items: stretch;
+      margin-top: 1.4rem;
+    }
+
+    .gap-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      align-items: stretch;
+      margin: 0;
+    }
+
+    .gap-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.9rem;
+      padding: 0.72rem 0.9rem 0.72rem 1.15rem;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      background: rgba(255, 255, 255, 0.82);
+      transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+    }
+
+    .gap-item::before {
+      content: '•';
+      position: absolute;
+      left: 0.58rem;
+      top: 0.74rem;
+      color: var(--apple-blue);
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+
+    .gap-item.active,
+    .gap-item:hover,
+    .gap-item:focus-within {
+      border-color: rgba(0, 113, 227, 0.28);
+      background: rgba(0, 113, 227, 0.06);
+      box-shadow: 0 14px 32px rgba(0, 113, 227, 0.10);
+      transform: translateY(-2px);
+    }
+
+    .gap-copy {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .gap-item-title {
+      display: inline;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--apple-black);
+      line-height: 1.35;
+      margin-right: 0.18rem;
+    }
+
+    .gap-item-text {
+      display: inline;
+      font-size: 0.89rem;
+      line-height: 1.5;
+      color: #424245;
+    }
+
+    .gap-eye {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.045);
+      color: var(--apple-gray);
+      font-size: 0.8rem;
+      flex-shrink: 0;
+      transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+    }
+
+    .gap-item.active .gap-eye,
+    .gap-item:hover .gap-eye,
+    .gap-item:focus-within .gap-eye {
+      background: rgba(0, 113, 227, 0.14);
+      color: var(--apple-blue);
+      transform: scale(1.04);
+    }
+
+    .gap-eye .eye-open {
+      display: none;
+      width: 15px;
+      height: 15px;
+      fill: currentColor;
+    }
+
+    .gap-eye .eye-closed {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .gap-item.active .gap-eye .eye-open,
+    .gap-item:hover .gap-eye .eye-open,
+    .gap-item:focus-within .gap-eye .eye-open {
+      display: block;
+    }
+
+    .gap-item.active .gap-eye .eye-closed,
+    .gap-item:hover .gap-eye .eye-closed,
+    .gap-item:focus-within .gap-eye .eye-closed {
+      display: none;
+    }
+
+    .gap-preview {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(4px);
+      transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
+      pointer-events: none;
+    }
+
+    .gap-hover-layout.preview-visible .gap-preview {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .gap-preview-figure {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 0.55rem;
+    }
+
+    .gap-preview-figure.active {
+      display: flex;
+    }
+
+    .gap-preview-figure img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      margin: 0 auto;
+      border-radius: 12px;
+      object-fit: contain;
+    }
+
     /* ── Buttons ── */
     .apple-btn {
       display: inline-flex;
@@ -1044,6 +1235,14 @@
       .apple-hero {
         padding: 3.5rem 1.5rem 1.5rem;
       }
+
+      .gap-preview {
+        display: none;
+      }
+
+      .gap-hover-layout {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 
@@ -1116,6 +1315,87 @@
       <p style="text-align:center; color:var(--apple-gray); font-size:0.88rem; margin-top:1rem;">
         Real-world urban driving &mdash; model output with only minimal smoothness post-refinement.
       </p>
+    </div>
+  </section>
+
+  <!-- ══════════ BENCHMARK GAP ══════════ -->
+  <section class="section">
+    <div class="apple-container">
+      <h2 class="apple-section-title reveal">When Benchmark Meets Reality</h2>
+      <div class="insight-panel reveal">
+        <p class="apple-body" style="text-align:justify;">
+          Public benchmarks have substantially advanced end-to-end autonomous driving, yet a central question remains:
+          <strong>to what extent do benchmark scores reflect real-world driving capability?</strong> In practice, the
+          gap between benchmark evaluation and deployment persists along three dimensions:
+        </p>
+        <div class="gap-hover-layout preview-visible">
+          <div class="gap-list" aria-label="Benchmark gaps">
+            <div class="gap-item" data-gap-target="scale-gap" tabindex="0">
+              <span class="gap-copy">
+                <span class="gap-item-title">Scale Gap.</span>
+                <span class="gap-item-text">Benchmark scale remains far below that of real-world training.</span>
+              </span>
+              <span class="gap-eye" aria-hidden="true">
+                <svg class="eye-closed" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M2.5 9.5c1.4-1.8 3.3-2.7 5.5-2.7s4.1.9 5.5 2.7"></path>
+                  <path d="M4.5 8.6 3.5 10"></path>
+                  <path d="M11.5 8.6 12.5 10"></path>
+                </svg>
+                <svg class="eye-open" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M8 3c3.2 0 5.8 2.3 7 5-1.2 2.7-3.8 5-7 5S2.2 10.7 1 8c1.2-2.7 3.8-5 7-5Zm0 2.2A2.8 2.8 0 1 0 8 10.8 2.8 2.8 0 0 0 8 5.2Z"></path>
+                </svg>
+              </span>
+            </div>
+            <div class="gap-item" data-gap-target="coverage-gap" tabindex="0">
+              <span class="gap-copy">
+                <span class="gap-item-title">Diversity Gap.</span>
+                <span class="gap-item-text">Benchmark diversity remains substantially narrower than real traffic.</span>
+              </span>
+              <span class="gap-eye" aria-hidden="true">
+                <svg class="eye-closed" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M2.5 9.5c1.4-1.8 3.3-2.7 5.5-2.7s4.1.9 5.5 2.7"></path>
+                  <path d="M4.5 8.6 3.5 10"></path>
+                  <path d="M11.5 8.6 12.5 10"></path>
+                </svg>
+                <svg class="eye-open" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M8 3c3.2 0 5.8 2.3 7 5-1.2 2.7-3.8 5-7 5S2.2 10.7 1 8c1.2-2.7 3.8-5 7-5Zm0 2.2A2.8 2.8 0 1 0 8 10.8 2.8 2.8 0 0 0 8 5.2Z"></path>
+                </svg>
+              </span>
+            </div>
+            <div class="gap-item" data-gap-target="evaluation-gap" tabindex="0">
+              <span class="gap-copy">
+                <span class="gap-item-title">Evaluation Gap.</span>
+                <span class="gap-item-text">Pseudo closed-loop evaluation remains an proxy for real-vehicle End-to-End AD.</span>
+              </span>
+              <span class="gap-eye" aria-hidden="true">
+                <svg class="eye-closed" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M2.5 9.5c1.4-1.8 3.3-2.7 5.5-2.7s4.1.9 5.5 2.7"></path>
+                  <path d="M4.5 8.6 3.5 10"></path>
+                  <path d="M11.5 8.6 12.5 10"></path>
+                </svg>
+                <svg class="eye-open" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M8 3c3.2 0 5.8 2.3 7 5-1.2 2.7-3.8 5-7 5S2.2 10.7 1 8c1.2-2.7 3.8-5 7-5Zm0 2.2A2.8 2.8 0 1 0 8 10.8 2.8 2.8 0 0 0 8 5.2Z"></path>
+                </svg>
+              </span>
+            </div>
+          </div>
+          <div class="gap-preview" aria-live="polite">
+            <figure class="gap-preview-figure active" data-gap-panel="scale-gap">
+              <img class="img-reveal shown" src="./assets/img/scale_gap.png" alt="Scale gap illustration">
+            </figure>
+            <figure class="gap-preview-figure" data-gap-panel="coverage-gap">
+              <img class="img-reveal" src="./assets/img/coverage_gap.png" alt="Coverage gap illustration">
+            </figure>
+            <figure class="gap-preview-figure" data-gap-panel="evaluation-gap">
+              <img class="img-reveal" src="./assets/img/evaluation_gap.png" alt="Evaluation gap illustration">
+            </figure>
+          </div>
+        </div>
+        <p class="apple-body" style="text-align:justify; margin-top:1.2rem;">
+          Taken together, these gaps suggest that benchmark success should not be conflated with real-world driving
+          competence. Faithful assessment requires large-scale real-world data and rigorous closed-loop validation.
+        </p>
+      </div>
     </div>
   </section>
 
@@ -1621,6 +1901,45 @@
           btn.setAttribute('aria-expanded', String(isOpen));
         });
       });
+
+      /* ── 3.6 Benchmark gap hover preview ── */
+      const gapItems = document.querySelectorAll('.gap-item');
+      const gapPanels = document.querySelectorAll('.gap-preview-figure');
+      const gapLayout = document.querySelector('.gap-hover-layout');
+      let lastGapTarget = gapItems[0]?.dataset.gapTarget || null;
+      function renderGapPreview(key) {
+        if (!gapLayout || !key) return;
+        gapLayout.classList.add('preview-visible');
+        gapPanels.forEach(panel => {
+          const isActive = panel.dataset.gapPanel === key;
+          panel.classList.toggle('active', isActive);
+          const img = panel.querySelector('.img-reveal');
+          if (isActive && img) img.classList.add('shown');
+        });
+      }
+      function setGapActive(target) {
+        if (!target || !gapLayout) return;
+        const key = target.dataset.gapTarget;
+        lastGapTarget = key;
+        gapItems.forEach(item => item.classList.toggle('active', item === target));
+        renderGapPreview(key);
+      }
+      function clearGapActive() {
+        if (!gapLayout) return;
+        gapItems.forEach(item => item.classList.remove('active'));
+        renderGapPreview(lastGapTarget);
+      }
+      gapItems.forEach(item => {
+        item.addEventListener('mouseenter', () => setGapActive(item));
+        item.addEventListener('focus', () => setGapActive(item));
+      });
+      renderGapPreview(lastGapTarget);
+      if (gapLayout) {
+        gapLayout.addEventListener('mouseleave', clearGapActive);
+        gapLayout.addEventListener('focusout', (e) => {
+          if (!gapLayout.contains(e.relatedTarget)) clearGapActive();
+        });
+      }
 
       /* ── 4. Counter animation ── */
       const counterIO = new IntersectionObserver((entries) => {

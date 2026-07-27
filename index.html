@@ -1175,8 +1175,48 @@
       vertical-align: 1.5px;
     }
 
+    /* ── Failure case videos ── */
+    .failure-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.4rem 1.6rem;
+      max-width: var(--max-w-wide);
+      margin: 2rem auto 0;
+    }
+
+    .failure-card {
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+      background: var(--apple-white);
+      transition: box-shadow 0.4s ease;
+    }
+
+    .failure-card:hover {
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
+    }
+
+    .failure-card video {
+      width: 100%;
+      display: block;
+      vertical-align: top;
+    }
+
+    .failure-subhead {
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--apple-black);
+      text-align: center;
+      margin: 3rem auto 0;
+    }
+
     @media (max-width: 860px) {
       .case-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .failure-grid {
         grid-template-columns: 1fr;
       }
 
@@ -1851,6 +1891,19 @@
       </div>
       <p class="fig-caption reveal" style="margin-top:1.2rem; max-width:780px; margin-left:auto; margin-right:auto;">
         Closed-loop real-vehicle testing across four representative scenarios, each illustrated with two key frames.
+      </p>
+
+      <h3 class="failure-subhead reveal">Failure Cases</h3>
+      <div class="failure-grid reveal">
+        <div class="failure-card">
+          <video src="./assets/img/failure1.mp4" autoplay muted loop playsinline></video>
+        </div>
+        <div class="failure-card">
+          <video src="./assets/img/failure2.mp4" autoplay muted loop playsinline></video>
+        </div>
+      </div>
+      <p class="fig-caption" style="margin-top:1.2rem; max-width:720px; margin-left:auto; margin-right:auto;">
+        No trajectory output indicates human takeover; trajectory output indicates model inference.
       </p>
     </div>
   </section>
